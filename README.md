@@ -1,4 +1,4 @@
-# bc-protein-mr
+# mr_breast_cancer
 
 Code repository for the manuscript:
 
@@ -13,7 +13,7 @@ This repository is being assembled from the original analysis workspace. The fir
 ## Current Repository Layout
 
 ```text
-bc-protein-mr/
+mr_breast_cancer/
 ├── docs/
 ├── analysis/
 │   └── 01_primary_mr/
