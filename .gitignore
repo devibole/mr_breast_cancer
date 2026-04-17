@@ -1,0 +1,14 @@
+.DS_Store
+*.Rhistory
+*.RData
+*.Rproj.user
+*.log
+*.tmp
+*.clumped
+*.csv
+*.tsv
+*.txt.gz
+results/
+inputs/
+tmp/
+
