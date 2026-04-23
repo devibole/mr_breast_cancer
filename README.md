@@ -35,7 +35,7 @@ mr_breast_cancer/
 
 ## Important Path Note
 
-Many scripts in this repository were developed in the original NIH/HPC project environment and therefore contain hardcoded absolute paths. These paths are preserved for provenance, but they must be updated before rerunning the code in a new local, cluster, or cloud environment.
+Many scripts in this repository were developed in the original NIH/HPC project environment and therefore contain hardcoded absolute paths. 
 
 In the cleaned scripts added here, those paths are grouped in a single `config` block near the top of each file.
 
