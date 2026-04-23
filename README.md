@@ -39,15 +39,3 @@ Many scripts in this repository were developed in the original NIH/HPC project e
 
 In the cleaned scripts added here, those paths are grouped in a single `config` block near the top of each file.
 
-## What Has Been Added So Far
-
-- Annotated ancestry-specific MR scripts for `EUR`, `EAS`, and `AFR`
-- Manuscript-based placeholder folders for all remaining analysis families
-- A code-fetch checklist tying manuscript sections to likely source scripts in the current workspace
-- A folder-level README describing inputs, outputs, and workflow expectations
-
-## Notes
-
-- The original analysis code remains untouched in the parent workspace.
-- The public-facing repository contains cleaned copies intended for annotation and organization.
-- Controlled-access datasets are not included in this repository.
