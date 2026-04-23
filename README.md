@@ -4,11 +4,6 @@ Code repository for the manuscript:
 
 `Cross-ancestry proteome-wide Mendelian randomization identifies 12 plasma protein candidates for breast cancer risk`
 
-This repository is being assembled from the original analysis workspace. The first code family added here is the ancestry-specific forward MR workflow for:
-
-- European ancestry (`EUR`)
-- East Asian ancestry (`EAS`)
-- African ancestry (`AFR`)
 
 ## Current Repository Layout
 
