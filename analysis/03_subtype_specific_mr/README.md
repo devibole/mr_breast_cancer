@@ -1,6 +1,10 @@
-# Subtype-Specific MR Placeholder
+# Subtype-Specific MR
 
-This folder will hold the EUR-restricted subtype analyses for luminal A-like, luminal B/HER2-negative-like, luminal B-like, HER2-enriched-like, and TNBC.
+This folder holds the EUR-restricted subtype analyses for luminal A-like, luminal B/HER2-negative-like, luminal B-like, HER2-enriched-like, and TNBC.
+
+## Added script
+
+- `run_subtype_mr_ivw.R`
 
 ## Manuscript links
 
@@ -9,13 +13,11 @@ This folder will hold the EUR-restricted subtype analyses for luminal A-like, lu
 - Figure 4
 - Supplementary Table 4
 
-## Likely source file to fetch
+## Related source files
 
 - `/Users/godboledd/Library/CloudStorage/OneDrive-NationalInstitutesofHealth/haoyu/mr_bc/cispQTL/cis_subtypes_heterogeniety.R`
 
-## Expected contents
+## Notes
 
-- subtype-specific MR runs
-- Cochran's Q heterogeneity across subtypes
-- heatmap-ready output tables
-
+- `run_subtype_mr_ivw.R` is kept as a standalone script so this analysis can be rerun independently.
+- Hardcoded HPC paths are preserved for provenance and need to be replaced before use outside the original environment.
