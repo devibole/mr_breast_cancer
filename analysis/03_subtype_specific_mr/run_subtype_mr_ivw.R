@@ -139,7 +139,7 @@ exposure_data$chr <- as.numeric(exposure_data$CHROM)
 exposure_data$pos <- as.numeric(exposure_data$POS19)
 print(paste("After rsid merge:", nrow(exposure_data)))
 
-# Get cis-regions - try Olink method first, then biomaRt fallback
+# Get cis-regions 
 protein_name <- sub(".*/([^/]+)\\.tar$", "\\1", tar_file_to_process)
 print(protein_name)
 
