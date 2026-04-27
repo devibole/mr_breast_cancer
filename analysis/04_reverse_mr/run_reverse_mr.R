@@ -1,6 +1,3 @@
-# Standalone reverse MR workflow with breast cancer liability as the exposure.
-# Hardcoded HPC paths are preserved for provenance and must be replaced for local reruns.
-
 args <- commandArgs(trailingOnly = TRUE)
 if (length(args) < 1) {
   stop("Provide the tar-file index as the first command-line argument.")
