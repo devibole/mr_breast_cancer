@@ -1,8 +1,7 @@
 suppressPackageStartupMessages({
+  library(tidyverse)
   library(data.table)
-  library(dplyr)
   library(coloc)
-  library(ggplot2)
   library(writexl)
 })
 

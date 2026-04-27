@@ -1,7 +1,6 @@
 suppressPackageStartupMessages({
+  library(tidyverse)
   library(readxl)
-  library(dplyr)
-  library(purrr)
   library(fs)
   library(writexl)
 })

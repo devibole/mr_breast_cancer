@@ -19,7 +19,7 @@ if (nzchar(slurm_job_id)) {
 dir.create(temp_dir, recursive = TRUE, showWarnings = FALSE)
 message("Temporary directory: ", temp_dir)
 
-library(dplyr)
+library(tidyverse)
 library(data.table)
 library(vroom)
 library(MendelianRandomization)
@@ -227,8 +227,8 @@ merged_data <- merged_data %>%
     BETA = ifelse(swap, -BETA, BETA),
     A1FREQ = ifelse(swap, 1 - A1FREQ, A1FREQ)
   ) %>%
-  dplyr::select(-ALLELE1, -ALLELE0) %>%
-  dplyr::rename(ALLELE1 = ALLELE1_new, ALLELE0 = ALLELE0_new)
+  select(-ALLELE1, -ALLELE0) %>%
+  rename(ALLELE1 = ALLELE1_new, ALLELE0 = ALLELE0_new)
 
 # Calculate p-values and apply filters
 merged_data$PVALUE <- 10^(-merged_data$LOG10P)
@@ -354,7 +354,7 @@ for (subtype in names(subtypes)) {
   
   iv_df <- significant_snps %>% 
     filter(significant_snps$rsid %in% clumps$SNP) %>%
-    dplyr::select(rsid, BETA, SE, log_or = all_of(log_or_column), se = all_of(se_column))
+    select(rsid, BETA, SE, log_or = all_of(log_or_column), se = all_of(se_column))
   
   colnames(iv_df) <- c("SNPID", "beta_exposure", "se_exposure", "beta_outcome", "se_outcome")
   iv_df <- as.data.frame(iv_df)
@@ -370,8 +370,8 @@ for (subtype in names(subtypes)) {
   
   # Create extended input data for saving
   tempInput_df <- significant_snps %>%
-    dplyr::filter(rsid %in% iv_df$SNPID) %>%  # Only keep the SNPs that made it to iv_df
-    dplyr::select(
+    filter(rsid %in% iv_df$SNPID) %>%  # Only keep the SNPs that made it to iv_df
+    select(
       SNPID = rsid,
       chr,
       pos, 

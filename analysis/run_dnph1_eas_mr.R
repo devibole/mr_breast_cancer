@@ -4,7 +4,7 @@ dir.create(paste0('/lscratch/', sid, '/temp_dnph1'), showWarnings = FALSE)
 temp_dir <- paste0('/lscratch/', sid, '/temp_dnph1')
 print(temp_dir)
 
-library(dplyr)
+library(tidyverse)
 library(data.table)
 library(MendelianRandomization)
 library(vroom)
@@ -169,7 +169,7 @@ for (p_thresh in p_thresholds) {
   
   iv_df <- sig_snps %>%
     filter(rsid %in% clumps$SNP) %>%
-    dplyr::select(rsid, BETA, SE, beta_out, se_out) %>%
+    select(rsid, BETA, SE, beta_out, se_out) %>%
     rename(SNPID = rsid, beta_exposure = BETA, se_exposure = SE,
            beta_outcome = beta_out, se_outcome = se_out) %>%
     as.data.frame()
@@ -184,7 +184,7 @@ for (p_thresh in p_thresholds) {
   # Save IV input file
   tempInput_df <- sig_snps %>%
     filter(rsid %in% iv_df$SNPID) %>%
-    dplyr::select(
+    select(
       SNPID            = rsid,
       chr, pos,
       effect_allele    = ALT,

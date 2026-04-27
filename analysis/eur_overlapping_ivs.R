@@ -1,7 +1,7 @@
 sid <- Sys.getenv('SLURM_JOB_ID')
 print(sid)
 
-library(dplyr)
+library(tidyverse)
 library(data.table)
 library(vroom)
 library(MendelianRandomization)
@@ -176,7 +176,7 @@ for (protein in proteins) {
     
     iv_data <- merged_data %>%
       filter(rsid %in% overlapping_ivs) %>%
-      dplyr::select(
+      select(
         SNPID          = rsid,
         chr, pos,
         effect_allele  = ALLELE1,

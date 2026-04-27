@@ -19,7 +19,7 @@ if (length(args) == 0) {
 }
 i <- as.numeric(args[1])
 
-library(dplyr)
+library(tidyverse)
 library(data.table)
 library(vroom)
 library(MendelianRandomization)
@@ -92,7 +92,7 @@ get_cis_region_table <- function(protein_name, olink_map_path, upstream = 1e6, d
 
   if (nrow(cis_regions) > 0) {
     return(
-      dplyr::mutate(
+      mutate(
         cis_regions,
         cis_start = ifelse(Strand == 1, gene_start - upstream, gene_end - downstream),
         cis_end = ifelse(Strand == 1, gene_end + downstream, gene_start + upstream),
@@ -107,8 +107,8 @@ get_cis_region_table <- function(protein_name, olink_map_path, upstream = 1e6, d
     stop("No cis-region could be identified for protein: ", protein_name)
   }
 
-  dplyr::mutate(
-    dplyr::rename(biomart_regions, chr = chromosome_name),
+  mutate(
+    rename(biomart_regions, chr = chromosome_name),
     chr = as.numeric(chr),
     cis_start = ifelse(strand == 1, start_position - upstream, end_position - downstream),
     cis_end = ifelse(strand == 1, end_position + downstream, start_position + upstream),
@@ -314,8 +314,8 @@ merged_data <- merged_data %>%
     BETA = ifelse(swap, -BETA, BETA),
     A1FREQ = ifelse(swap, 1 - A1FREQ, A1FREQ)
   ) %>%
-  dplyr::select(-ALLELE1, -ALLELE0) %>%
-  dplyr::rename(ALLELE1 = ALLELE1_new, ALLELE0 = ALLELE0_new)
+  select(-ALLELE1, -ALLELE0) %>%
+  rename(ALLELE1 = ALLELE1_new, ALLELE0 = ALLELE0_new)
 
 merged_data$PVALUE <- 10^(-merged_data$LOG10P)
 merged_data <- merged_data %>%
@@ -350,8 +350,8 @@ for (p_thresh in config$p_thresholds) {
   clumps <- combine_clumped_files(temp_dir, file.path(temp_dir, "combined_clumps.txt"))
 
   iv_df <- significant_snps %>%
-    dplyr::filter(rsid %in% clumps$SNP) %>%
-    dplyr::transmute(
+    filter(rsid %in% clumps$SNP) %>%
+    transmute(
       SNPID = rsid,
       beta_exposure = BETA,
       se_exposure = SE,
@@ -367,8 +367,8 @@ for (p_thresh in config$p_thresholds) {
   }
 
   mr_input_export <- significant_snps %>%
-    dplyr::filter(rsid %in% iv_df$SNPID) %>%
-    dplyr::transmute(
+    filter(rsid %in% iv_df$SNPID) %>%
+    transmute(
       SNPID = rsid,
       chr,
       pos,
@@ -400,7 +400,7 @@ if (length(results_list) == 0) {
   stop("No MR results were generated for protein index ", i, " (", protein_label, ").")
 }
 
-combined_results <- dplyr::bind_cols(results_list)
+combined_results <- bind_cols(results_list)
 write_pipe_delim(
   combined_results,
   file.path(config$results_export_dir, paste0("result_", i, ".txt"))

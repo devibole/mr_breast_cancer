@@ -21,7 +21,7 @@ dir.create(temp_dir, recursive = TRUE, showWarnings = FALSE)
 message("Temporary directory: ", temp_dir)
 
 suppressPackageStartupMessages({
-  library(dplyr)
+  library(tidyverse)
   library(data.table)
   library(MendelianRandomization)
   library(vroom)
@@ -195,7 +195,7 @@ exposure_data[, rsid := rsids]
 print(paste("Rsid duplicates (multi-allelic variants - keeping all):", nrow(exposure_data) - length(unique(exposure_data$rsid))))
 
 outcome_data_prepared <- outcome_data %>%
-  dplyr::rename(
+  rename(
     beta_outcome = Beta.meta,
     se_outcome = sdE.meta,
     pvalue_outcome = p.meta
@@ -381,7 +381,7 @@ for (p_thresh in p_thresholds) {
   print(head(clumps))
   
   iv_df <- significant_snps %>% filter(significant_snps$rsid %in% clumps$SNP) %>%
-    dplyr::select(rsid, BETA, SE, beta_outcome, se_outcome)
+    select(rsid, BETA, SE, beta_outcome, se_outcome)
   
   colnames(iv_df) <- c("SNPID", "beta_exposure", "se_exposure", "beta_outcome", "se_outcome")
   print(head(iv_df))
@@ -399,8 +399,8 @@ for (p_thresh in p_thresholds) {
   
   # Create extended input data for saving
   tempInput_df <- significant_snps %>%
-    dplyr::filter(rsid %in% iv_df$SNPID) %>%
-    dplyr::select(
+    filter(rsid %in% iv_df$SNPID) %>%
+    select(
       SNPID = rsid,
       chr,
       pos, 

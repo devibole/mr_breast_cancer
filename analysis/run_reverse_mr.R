@@ -18,7 +18,7 @@ dir.create(temp_dir, recursive = TRUE, showWarnings = FALSE)
 message("Temporary directory: ", temp_dir)
 
 suppressPackageStartupMessages({
-  library(dplyr)
+  library(tidyverse)
   library(data.table)
   library(vroom)
   library(MendelianRandomization)
@@ -176,8 +176,8 @@ clumps <- fread(combined_path, header=TRUE)
 
 # Build IVs from clumped SNPs
 iv <- significant %>%
-  dplyr::filter(rsid %in% clumps$SNP) %>%
-  dplyr::select(
+  filter(rsid %in% clumps$SNP) %>%
+  select(
     SNPID        = rsid,
     beta_exposure = Beta.meta,   # <- fix: was BETA.meta
     se_exposure   = sdE.meta,
@@ -205,8 +205,8 @@ if (length(valid_idx) == 0) {
 significant$PVALUE <- 10^(-significant$LOG10P)
 
 tempInput_df <- significant %>%
-  dplyr::filter(rsid %in% iv$SNPID) %>%  
-  dplyr::select(
+  filter(rsid %in% iv$SNPID) %>%  
+  select(
     SNPID = rsid,
     chr,
     pos, 

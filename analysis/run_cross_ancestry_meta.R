@@ -7,8 +7,7 @@
 #   - Replace the hardcoded paths in `config` before rerunning outside the original HPC environment.
 
 library(vroom)
-library(dplyr)
-library(tidyr)
+library(tidyverse)
 library(meta)
 library(ACAT)
 
