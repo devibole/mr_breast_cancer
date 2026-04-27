@@ -1,10 +1,4 @@
-# [BC-PROTEIN-MR]
 # Purpose: Run fixed-effect cross-ancestry meta-analysis across EUR, EAS, and AFR MR results.
-# Manuscript links: Methods - Primary and Sensitivity MR Analyses; Figure 2; Figure 3;
-#   Table 2; Supplementary Tables 2-3.
-# Notes:
-#   - This is the updated tarball-derived meta-analysis script.
-#   - Replace the hardcoded paths in `config` before rerunning outside the original HPC environment.
 
 library(vroom)
 library(tidyverse)
