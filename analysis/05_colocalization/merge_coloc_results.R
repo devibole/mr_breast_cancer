@@ -1,6 +1,3 @@
-# Standalone helper to merge per-protein colocalization result workbooks.
-# Hardcoded HPC paths are preserved for provenance and must be replaced for local reruns.
-
 suppressPackageStartupMessages({
   library(readxl)
   library(dplyr)

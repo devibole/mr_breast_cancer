@@ -1,6 +1,3 @@
-# Standalone colocalization workflow for the candidate protein analyses.
-# Hardcoded HPC paths are preserved for provenance and must be replaced for local reruns.
-
 suppressPackageStartupMessages({
   library(data.table)
   library(dplyr)

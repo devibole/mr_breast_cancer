@@ -1,5 +1,3 @@
-# Standalone subtype-specific MR workflow used for the intrinsic subtype analyses.
-# Hardcoded HPC paths are preserved for provenance and must be replaced for local reruns.
 
 args <- commandArgs(trailingOnly = TRUE)
 if (length(args) < 1) {
@@ -141,7 +139,7 @@ exposure_data$chr <- as.numeric(exposure_data$CHROM)
 exposure_data$pos <- as.numeric(exposure_data$POS19)
 print(paste("After rsid merge:", nrow(exposure_data)))
 
-# Get cis-regions - try Olink method first, then biomaRt fallback
+# Get cis-regions 
 protein_name <- sub(".*/([^/]+)\\.tar$", "\\1", tar_file_to_process)
 print(protein_name)
 
