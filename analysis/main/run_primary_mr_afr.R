@@ -6,10 +6,8 @@
 #   - rsID lookup RData containing `all_rsids`
 #   - Olink annotation TSV
 # Outputs:
-#   - one pipe-delimited MR input file per protein
-#   - one pipe-delimited MR result file per protein index
-# Notes:
-#   - Replace the hardcoded paths in `config` before rerunning outside the original environment.
+#   - one MR input file per protein
+#   - one MR result file per protein index
 
 args <- commandArgs(trailingOnly = TRUE)
 if (length(args) == 0) {
