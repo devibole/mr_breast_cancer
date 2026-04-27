@@ -1,5 +1,3 @@
-# Standalone subtype-specific MR workflow used for the intrinsic subtype analyses.
-# Hardcoded HPC paths are preserved for provenance and must be replaced for local reruns.
 
 args <- commandArgs(trailingOnly = TRUE)
 if (length(args) < 1) {
