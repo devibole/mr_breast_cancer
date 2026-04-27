@@ -11,10 +11,10 @@ suppressPackageStartupMessages({
 # ── Paths ──────────────────────────────────────────────────────────────────────
 base_dir <- "/data/BB_Bioinformatics/DG/MR_bc/2025_updated"
 
-# EAS top12 pQTL tar files
+# AFR top12 pQTL tar files
 tar_dir <- "/vf/users/BB_Bioinformatics/ProjectData/UKB_protein_sumstat/UKB-PPP_pGWAS_summary_statistics/top12/African"
 
-# EAS outcome input files (already ancestry-specific outcomes)
+# AFR outcome input files (already ancestry-specific outcomes)
 outcome_input_dir <- file.path(base_dir, "input_files/afr37")
 
 # top12 overlap definition files
