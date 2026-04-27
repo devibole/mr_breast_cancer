@@ -1,17 +1,13 @@
-# [BC-PROTEIN-MR]
 # Purpose: Ancestry-specific forward MR for East Asian breast cancer GWAS using UKB-PPP EUR cis-pQTL instruments.
-# Manuscript links: Methods - Mendelian Randomization Analysis; Results - Ancestry-specific Associations;
-#   Supplementary Tables 1-3.
+
 # Inputs:
 #   - UKB-PPP EUR protein summary-statistic tar archives
 #   - EAS breast cancer GWAS summary statistics
 #   - rsID lookup RData containing `all_rsids`
 #   - Olink annotation TSV
 # Outputs:
-#   - one pipe-delimited MR input file per protein
-#   - one pipe-delimited MR result file per protein index
-# Notes:
-#   - Replace the hardcoded paths in `config` before rerunning outside the original environment.
+#   - one MR input file per protein
+#   - one MR result file per protein index
 
 args <- commandArgs(trailingOnly = TRUE)
 if (length(args) == 0) {
