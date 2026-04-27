@@ -1,7 +1,5 @@
-# [BC-PROTEIN-MR]
 # Purpose: Ancestry-specific forward MR for African ancestry breast cancer GWAS using UKB-PPP EUR cis-pQTL instruments.
-# Manuscript links: Methods - Mendelian Randomization Analysis; Results - Ancestry-specific Associations;
-#   Supplementary Tables 1-3.
+
 # Inputs:
 #   - UKB-PPP EUR protein summary-statistic tar archives
 #   - AFR breast cancer GWAS summary statistics
