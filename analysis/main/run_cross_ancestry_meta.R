@@ -6,10 +6,22 @@ library(meta)
 library(ACAT)
 
 config <- list(
-  eas_results_path = "/data/BB_Bioinformatics/DG/MR_bc/2025_updated/eas.csv",
-  afr_results_path = "/data/BB_Bioinformatics/DG/MR_bc/2025_updated/afr.csv",
-  eur_results_path = "/data/BB_Bioinformatics/DG/MR_bc/2025_updated/eur.csv",
-  output_path = "/data/BB_Bioinformatics/DG/MR_bc/2025_updated/meta.csv"
+  eas_results_path = Sys.getenv(
+    "MRBC_EAS_RESULTS_PATH",
+    unset = "/data/BB_Bioinformatics/DG/MR_bc/2025_updated/eas.csv"
+  ),
+  afr_results_path = Sys.getenv(
+    "MRBC_AFR_RESULTS_PATH",
+    unset = "/data/BB_Bioinformatics/DG/MR_bc/2025_updated/afr.csv"
+  ),
+  eur_results_path = Sys.getenv(
+    "MRBC_EUR_RESULTS_PATH",
+    unset = "/data/BB_Bioinformatics/DG/MR_bc/2025_updated/eur.csv"
+  ),
+  output_path = Sys.getenv(
+    "MRBC_META_OUTPUT_PATH",
+    unset = "/data/BB_Bioinformatics/DG/MR_bc/2025_updated/meta.csv"
+  )
 )
 
 data_EAS <- vroom(config$eas_results_path)

@@ -263,16 +263,44 @@ write_pipe_delim <- function(x, file) {
 }
 
 config <- list(
-  protein_archive_dir = "/data/BB_Bioinformatics/ProjectData/UKB_protein_sumstat/UKB-PPP_pGWAS_summary_statistics/European_discovery",
-  olink_map_path = "/data/BB_Bioinformatics/ProjectData/UKB_protein_sumstat/Metadata/Protein_annotation/olink_protein_map_3k_v1.tsv",
-  rsid_lookup_rdata = "/data/BB_Bioinformatics/DG/MR_bc/all_rsids.RData",
-  outcome_path = "/data/BB_Bioinformatics/ProjectData/breast_cancer_sum_data/BCAC_EUR/bc_summary_gwas.txt",
-  ld_reference_dir = "/data/BB_Bioinformatics/ProjectData/1000G_unrelated/1000G_full_data/GRCh37/EUR",
-  plink_binary = "/usr/local/apps/plink/1.9.0-beta4.4/plink",
-  input_export_dir = "/data/BB_Bioinformatics/DG/MR_bc/2025_updated/input_files/eur37",
-  results_export_dir = "/data/BB_Bioinformatics/DG/MR_bc/2025_updated/results/eur37",
-  scratch_root = "/lscratch",
-  p_thresholds = c(5e-08)
+  protein_archive_dir = Sys.getenv(
+    "MRBC_PROTEIN_ARCHIVE_DIR",
+    unset = "/data/BB_Bioinformatics/ProjectData/UKB_protein_sumstat/UKB-PPP_pGWAS_summary_statistics/European_discovery"
+  ),
+  olink_map_path = Sys.getenv(
+    "MRBC_OLINK_MAP_PATH",
+    unset = "/data/BB_Bioinformatics/ProjectData/UKB_protein_sumstat/Metadata/Protein_annotation/olink_protein_map_3k_v1.tsv"
+  ),
+  rsid_lookup_rdata = Sys.getenv(
+    "MRBC_RSID_LOOKUP_RDATA",
+    unset = "/data/BB_Bioinformatics/DG/MR_bc/all_rsids.RData"
+  ),
+  outcome_path = Sys.getenv(
+    "MRBC_OUTCOME_PATH",
+    unset = "/data/BB_Bioinformatics/ProjectData/breast_cancer_sum_data/BCAC_EUR/bc_summary_gwas.txt"
+  ),
+  ld_reference_dir = Sys.getenv(
+    "MRBC_LD_REFERENCE_DIR",
+    unset = "/data/BB_Bioinformatics/ProjectData/1000G_unrelated/1000G_full_data/GRCh37/EUR"
+  ),
+  plink_binary = Sys.getenv(
+    "MRBC_PLINK_BINARY",
+    unset = "/usr/local/apps/plink/1.9.0-beta4.4/plink"
+  ),
+  input_export_dir = Sys.getenv(
+    "MRBC_INPUT_EXPORT_DIR",
+    unset = "/data/BB_Bioinformatics/DG/MR_bc/2025_updated/input_files/eur37"
+  ),
+  results_export_dir = Sys.getenv(
+    "MRBC_RESULTS_EXPORT_DIR",
+    unset = "/data/BB_Bioinformatics/DG/MR_bc/2025_updated/results/eur37"
+  ),
+  scratch_root = Sys.getenv("MRBC_SCRATCH_ROOT", unset = "/lscratch"),
+  p_thresholds = as.numeric(strsplit(
+    Sys.getenv("MRBC_P_THRESHOLDS", unset = "5e-8,5e-7,5e-6"),
+    ",",
+    fixed = TRUE
+  )[[1]])
 )
 
 temp_dir <- create_temp_run_dir(i, scratch_root = config$scratch_root)
@@ -284,7 +312,10 @@ outcome_data <- data.table::setDT(outcome_data)
 outcome_data[, c("allele1", "allele2") := standardize_alleles(Effect.Meta, Baseline.Meta)]
 outcome_data[, c("chr", "pos") := list(chr.Onco, Position.Onco)]
 
-tar_files <- list.files(config$protein_archive_dir, pattern = "\\.tar$", full.names = TRUE)
+tar_files <- sort(list.files(config$protein_archive_dir, pattern = "\\.tar$", full.names = TRUE))
+if (i < 1L || i > length(tar_files)) {
+  stop("Protein index ", i, " is outside 1-", length(tar_files), ".")
+}
 tar_file_to_process <- tar_files[i]
 protein_label <- sub(".*/([^/]+)\\.tar$", "\\1", tar_file_to_process)
 
