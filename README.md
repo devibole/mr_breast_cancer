@@ -20,11 +20,11 @@ The primary MR scripts can be used with either the UKB-PPP discovery pQTL files 
 - `analysis/run_reverse_mr.R` — tests breast cancer liability as the exposure and protein levels as the outcome.
 - `analysis/run_decode_mr.R` — repeats forward MR using deCODE pQTL data.
 - `analysis/run_eas_japan_top12_mr.R` — repeats forward MR using Japanese pQTL data.
+- `analysis/run_eas_bbj_bcac_sensitivity.R` — compares East Asian MR estimates using the BBJ, BCAC, and combined outcome data.
 
 ### Colocalization
 
 - `analysis/coloc/run_protein_coloc_analysis.R` — performs regional protein–breast cancer colocalization.
-- `analysis/coloc/run_protein_coloc_swarm.sh` — submits the protein-specific colocalization runs.
 - `analysis/coloc/merge_coloc_results.R` — combines the protein-specific colocalization results.
 
 ## Data requirements
