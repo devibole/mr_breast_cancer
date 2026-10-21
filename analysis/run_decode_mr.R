@@ -20,12 +20,16 @@ script_dir <- if (length(script_file_arg) > 0) {
 }
 
 slurm_job_id <- Sys.getenv("SLURM_JOB_ID", unset = "")
-if (nzchar(slurm_job_id)) {
-  temp_dir <- file.path("/lscratch", slurm_job_id, paste0("temp_", job_index))
+lscratch_root <- file.path("/lscratch", slurm_job_id)
+if (nzchar(slurm_job_id) && dir.exists(lscratch_root)) {
+  temp_dir <- file.path(lscratch_root, paste0("temp_", job_index))
 } else {
   temp_dir <- file.path(tempdir(), paste0("temp_", job_index))
 }
 dir.create(temp_dir, recursive = TRUE, showWarnings = FALSE)
+if (!dir.exists(temp_dir)) {
+  stop("Unable to create the temporary working directory: ", temp_dir)
+}
 message("Temporary directory: ", temp_dir)
 
 suppressPackageStartupMessages({
