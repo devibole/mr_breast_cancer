@@ -91,12 +91,12 @@ get_cis_regions <- function(protein_names, upstream = 1e6, downstream = 1e6) {
   genes$cis_start <- pmax(genes$cis_start, 1)
 
   genes <- genes %>%
-    mutate(
+    dplyr::mutate(
       chromosome_name = suppressWarnings(as.numeric(chromosome_name)),
       cis_start = suppressWarnings(as.numeric(cis_start)),
       cis_end = suppressWarnings(as.numeric(cis_end))
     ) %>%
-    filter(chromosome_name %in% 1:22)
+    dplyr::filter(chromosome_name %in% 1:22)
 
   if (any(!is.finite(genes$chromosome_name)) ||
       any(!is.finite(genes$cis_start)) ||
@@ -344,7 +344,7 @@ if (nrow(merged_data) == 0) {
 
 # Harmonize effect alleles for breast cancer outcome
 merged_data <- merged_data %>%
-  mutate(
+  dplyr::mutate(
     swap = (effectAllele != Effect.Meta),
     ALLELE1 = ifelse(swap, otherAllele, effectAllele),
     ALLELE0 = ifelse(swap, effectAllele, otherAllele),
@@ -355,7 +355,7 @@ merged_data <- merged_data %>%
 
 # Apply MAF filtering
 merged_data <- merged_data %>%
-  filter(ImpMAF >= 0.01)
+  dplyr::filter(ImpMAF >= 0.01)
 
 print(paste("After MAF filtering:", nrow(merged_data)))
 
@@ -447,8 +447,9 @@ for (p_thresh in p_thresholds) {
   clumps <- fread(output_file, header = TRUE)
   print(head(clumps))
   
-  iv_df <- significant_snps %>% filter(significant_snps$rsid %in% clumps$SNP) %>%
-    select(rsid, BETA, SE, beta_outcome, se_outcome)
+  iv_df <- significant_snps %>%
+    dplyr::filter(rsid %in% clumps$SNP) %>%
+    dplyr::select(rsid, BETA, SE, beta_outcome, se_outcome)
   
   colnames(iv_df) <- c("SNPID", "beta_exposure", "se_exposure", "beta_outcome", "se_outcome")
   print(head(iv_df))
@@ -466,8 +467,8 @@ for (p_thresh in p_thresholds) {
   
   # Create extended input data for saving
   tempInput_df <- significant_snps %>%
-    filter(rsid %in% iv_df$SNPID) %>%
-    select(
+    dplyr::filter(rsid %in% iv_df$SNPID) %>%
+    dplyr::select(
       SNPID = rsid,
       chr,
       pos, 
