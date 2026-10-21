@@ -279,13 +279,12 @@ exposure_data[, rsid := rsids]
 
 print(paste("Rsid duplicates (multi-allelic variants - keeping all):", nrow(exposure_data) - length(unique(exposure_data$rsid))))
 
-outcome_data <- vroom(
+outcome_data <- fread(
   config$outcome_data_path,
-  col_select = c(
+  select = c(
     "chr.Onco", "Position.Onco", "Effect.Meta", "Baseline.Meta",
     "Beta.meta", "sdE.meta", "p.meta"
-  ),
-  show_col_types = FALSE
+  )
 )
 outcome_data_prepared <- outcome_data %>%
   rename(
