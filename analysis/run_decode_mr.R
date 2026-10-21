@@ -1,5 +1,6 @@
 # Standalone deCODE replication workflow.
-# Hardcoded HPC paths are preserved for provenance and must be replaced for local reruns.
+# Default HPC paths are preserved for provenance. Output locations can be
+# overridden for reruns so that published analysis artifacts are not replaced.
 
 args <- commandArgs(trailingOnly = TRUE)
 if (length(args) < 1) {
@@ -43,8 +44,14 @@ config <- list(
   info_file_path = "/data/BB_Bioinformatics/ProjectData/DeCode_protein_sumstat/info/assocvariants.annotated.txt.gz",
   chain_file_path = "/data/BB_Bioinformatics/Kevin/tools/liftover/hg38ToHg19.over.chain",
   chromosome_dir = "/data/BB_Bioinformatics/ProjectData/1000G_unrelated/1000G_full_data/GRCh37/EUR",
-  input_files_dir = "/data/BB_Bioinformatics/DG/MR_bc/2025_updated/decode/input_files",
-  results_dir = "/data/BB_Bioinformatics/DG/MR_bc/2025_updated/decode/results"
+  input_files_dir = Sys.getenv(
+    "MRBC_DECODE_INPUT_DIR",
+    unset = "/data/BB_Bioinformatics/DG/MR_bc/2025_updated/decode/input_files"
+  ),
+  results_dir = Sys.getenv(
+    "MRBC_DECODE_RESULTS_DIR",
+    unset = "/data/BB_Bioinformatics/DG/MR_bc/2025_updated/decode/results"
+  )
 )
 
 # Load excluded variants (Decode-specific)
@@ -62,7 +69,7 @@ standardize_alleles <- function(allele1, allele2) {
 }
 
 # Load Decode protein data
-data_files <- list.files(config$decode_files_dir, pattern = "\\.gz$", full.names = TRUE)
+data_files <- sort(list.files(config$decode_files_dir, pattern = "\\.gz$", full.names = TRUE))
 if (length(data_files) == 0) {
   stop("No deCODE summary-statistic files were found.")
 }
@@ -251,7 +258,23 @@ protein_symbol
 
 # Get cis-regions
 cis_regions <- get_cis_regions(protein_symbol)
-cis_regions <- cis_regions[cis_regions$chromosome_name %in% 1:22,]
+
+# `apply()` coerces mixed-type data-frame rows to character. Genomic range
+# comparisons must therefore use explicitly numeric coordinates rather than
+# values extracted from an `apply()` row.
+cis_regions <- cis_regions %>%
+  mutate(
+    chromosome_name = suppressWarnings(as.numeric(chromosome_name)),
+    cis_start = suppressWarnings(as.numeric(cis_start)),
+    cis_end = suppressWarnings(as.numeric(cis_end))
+  ) %>%
+  filter(chromosome_name %in% 1:22)
+
+if (any(!is.finite(cis_regions$chromosome_name)) ||
+    any(!is.finite(cis_regions$cis_start)) ||
+    any(!is.finite(cis_regions$cis_end))) {
+  stop("Cis-region coordinates must be finite numeric values.")
+}
 
 if (nrow(cis_regions) == 0) {
   stop(paste("No cis-region found for protein symbol:", protein_symbol))
@@ -262,12 +285,21 @@ print(dim(merged_data))
 
 # Apply cis-region filtering
 merged_data <- setDT(merged_data)
+merged_data[, `:=`(
+  chr = suppressWarnings(as.numeric(chr)),
+  pos = suppressWarnings(as.numeric(pos))
+)]
+if (any(!is.finite(merged_data$chr)) || any(!is.finite(merged_data$pos))) {
+  stop("Merged variant coordinates must be finite numeric values.")
+}
 
-merged_data <- merged_data[apply(cis_regions, 1, function(cis_row) {
-  merged_data$chr == as.numeric(cis_row["chromosome_name"]) &
-    merged_data$pos >= cis_row["cis_start"] &
-    merged_data$pos <= cis_row["cis_end"]
-}) %>% rowSums() > 0]
+in_cis_region <- Reduce(`|`, lapply(seq_len(nrow(cis_regions)), function(region_index) {
+  region <- cis_regions[region_index, ]
+  merged_data$chr == region$chromosome_name &
+    merged_data$pos >= region$cis_start &
+    merged_data$pos <= region$cis_end
+}))
+merged_data <- merged_data[in_cis_region]
 
 print(paste("After cis-region filtering:", nrow(merged_data)))
 

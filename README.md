@@ -16,7 +16,9 @@ The primary MR scripts can be used with either the UKB-PPP discovery pQTL files 
 
 ### Follow-up analyses
 
-- [`analysis/run_subtype_mr_ivw.R`](analysis/run_subtype_mr_ivw.R) — evaluates candidate proteins across breast cancer subtypes.
+- [`analysis/subtype_shared_control/run_analysis.R`](analysis/subtype_shared_control/run_analysis.R) — runs the shared-control-adjusted breast cancer subtype analysis.
+- [`analysis/subtype_shared_control/shared_control_pipeline.R`](analysis/subtype_shared_control/shared_control_pipeline.R) — constructs the shared-control covariance models.
+- [`analysis/subtype_shared_control/subtype_heterogeneity.R`](analysis/subtype_shared_control/subtype_heterogeneity.R) — tests heterogeneity across subtype MR estimates.
 - [`analysis/run_reverse_mr.R`](analysis/run_reverse_mr.R) — tests breast cancer as the exposure and plasma protein levels as the outcome.
 - [`analysis/run_decode_mr.R`](analysis/run_decode_mr.R) — parallels run_primary_mr_eur.R but using deCODE pQTL data.
 - [`analysis/run_eas_japan_top12_mr.R`](analysis/run_eas_japan_top12_mr.R) — parallels run_primary_mr_eas.R but using Japanese pQTL data.
