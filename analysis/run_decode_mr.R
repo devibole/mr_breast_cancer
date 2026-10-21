@@ -286,13 +286,12 @@ outcome_data <- fread(
     "Beta.meta", "sdE.meta", "p.meta"
   )
 )
-outcome_data_prepared <- outcome_data %>%
-  rename(
-    beta_outcome = Beta.meta,
-    se_outcome = sdE.meta,
-    pvalue_outcome = p.meta
-
-  )
+outcome_data_prepared <- copy(outcome_data)
+setnames(
+  outcome_data_prepared,
+  old = c("Beta.meta", "sdE.meta", "p.meta"),
+  new = c("beta_outcome", "se_outcome", "pvalue_outcome")
+)
 rm(outcome_data)
 invisible(gc())
 
