@@ -12,6 +12,13 @@ if (is.na(job_index) || job_index < 1) {
   stop("The deCODE file index must be a positive integer.")
 }
 
+script_file_arg <- grep("^--file=", commandArgs(trailingOnly = FALSE), value = TRUE)
+script_dir <- if (length(script_file_arg) > 0) {
+  dirname(normalizePath(sub("^--file=", "", script_file_arg[1])))
+} else {
+  getwd()
+}
+
 slurm_job_id <- Sys.getenv("SLURM_JOB_ID", unset = "")
 if (nzchar(slurm_job_id)) {
   temp_dir <- file.path("/lscratch", slurm_job_id, paste0("temp_", job_index))
@@ -26,7 +33,6 @@ suppressPackageStartupMessages({
   library(data.table)
   library(MendelianRandomization)
   library(vroom)
-  library(biomaRt)
   library(mr.raps)
   library(rtracklayer)
 })
@@ -44,6 +50,10 @@ config <- list(
   info_file_path = "/data/BB_Bioinformatics/ProjectData/DeCode_protein_sumstat/info/assocvariants.annotated.txt.gz",
   chain_file_path = "/data/BB_Bioinformatics/Kevin/tools/liftover/hg38ToHg19.over.chain",
   chromosome_dir = "/data/BB_Bioinformatics/ProjectData/1000G_unrelated/1000G_full_data/GRCh37/EUR",
+  cis_regions_path = Sys.getenv(
+    "MRBC_DECODE_CIS_REGIONS",
+    unset = file.path(script_dir, "decode_cis_regions_grch37.tsv")
+  ),
   input_files_dir = Sys.getenv(
     "MRBC_DECODE_INPUT_DIR",
     unset = "/data/BB_Bioinformatics/DG/MR_bc/2025_updated/decode/input_files"
@@ -54,10 +64,6 @@ config <- list(
   )
 )
 
-# Load excluded variants (Decode-specific)
-excluded_variants <- fread(config$excluded_variants_path, fill = TRUE)
-load(config$all_rsids_rdata)
-outcome_data <- vroom(config$outcome_data_path)
 dir.create(config$input_files_dir, recursive = TRUE, showWarnings = FALSE)
 dir.create(config$results_dir, recursive = TRUE, showWarnings = FALSE)
 
@@ -66,6 +72,39 @@ standardize_alleles <- function(allele1, allele2) {
   idx <- allele1 > allele2
   list(allele1 = ifelse(idx, allele2, allele1), 
        allele2 = ifelse(idx, allele1, allele2))
+}
+
+get_cis_regions <- function(protein_names, upstream = 1e6, downstream = 1e6) {
+  genes <- fread(config$cis_regions_path)
+  genes <- genes[hgnc_symbol %in% protein_names]
+
+  genes$cis_start <- ifelse(
+    genes$strand == 1,
+    genes$start_position - upstream,
+    genes$end_position - downstream
+  )
+  genes$cis_end <- ifelse(
+    genes$strand == 1,
+    genes$end_position + downstream,
+    genes$start_position + upstream
+  )
+  genes$cis_start <- pmax(genes$cis_start, 1)
+
+  genes <- genes %>%
+    mutate(
+      chromosome_name = suppressWarnings(as.numeric(chromosome_name)),
+      cis_start = suppressWarnings(as.numeric(cis_start)),
+      cis_end = suppressWarnings(as.numeric(cis_end))
+    ) %>%
+    filter(chromosome_name %in% 1:22)
+
+  if (any(!is.finite(genes$chromosome_name)) ||
+      any(!is.finite(genes$cis_start)) ||
+      any(!is.finite(genes$cis_end))) {
+    stop("Cis-region coordinates must be finite numeric values.")
+  }
+
+  genes
 }
 
 # Load Decode protein data
@@ -79,19 +118,47 @@ if (job_index > length(data_files)) {
 
 data_file_to_process <- data_files[job_index]
 print(data_file_to_process)
-exp <- vroom(data_file_to_process)
+
+filename <- sub(".*/([^/]+)\\.txt\\.gz$", "\\1", data_file_to_process)
+protein_full_name <- filename
+protein_symbol <- strsplit(filename, "_")[[1]][3]
+cis_regions <- get_cis_regions(protein_symbol)
+if (nrow(cis_regions) == 0) {
+  stop(paste("No cis-region found for protein symbol:", protein_symbol))
+}
+
+exp <- vroom(
+  data_file_to_process,
+  col_select = c(
+    "Chrom", "Pos", "Name", "rsids", "effectAllele", "otherAllele",
+    "Beta", "Pval", "SE", "ImpMAF"
+  ),
+  show_col_types = FALSE
+)
 
 exposure_data <- setDT(exp)
+rm(exp)
 print(paste("Initial exposure SNPs:", nrow(exposure_data)))
 
+# A variant cannot be in an autosomal cis window unless it is on the same
+# chromosome as the encoded protein. Apply this necessary condition before
+# large annotation joins; the exact hg19 cis-window test is still performed
+# below after rsID mapping/liftover.
+exposure_data[, source_chr := suppressWarnings(as.numeric(gsub("^chr", "", Chrom)))]
+exposure_data <- exposure_data[source_chr %in% cis_regions$chromosome_name]
+exposure_data[, source_chr := NULL]
+print(paste("After protein-chromosome prefilter:", nrow(exposure_data)))
+
 # Merge frequency data (Decode-specific)
-info_data <- fread(config$info_file_path)
+info_data <- fread(config$info_file_path, select = c("Name", "effectAlleleFreq"))
 
 # Merge frequency data using the Name column
 exposure_data <- merge(exposure_data, 
                       info_data[, .(Name, effectAlleleFreq)], 
                       by = "Name", 
                       all.x = TRUE)
+rm(info_data)
+invisible(gc())
 
 setnames(exposure_data, "effectAlleleFreq", "decode_A1_freq")
 
@@ -107,8 +174,10 @@ exposure_data <- exposure_data[Chrom != "chrX"]
 print(paste("After removing chrX:", nrow(exposure_data)))
 
 # Exclude problematic variants (Decode-specific)
+excluded_variants <- fread(config$excluded_variants_path, select = "Name", fill = TRUE)
 setkey(excluded_variants, Name) 
 exposure_data <- exposure_data[!Name %in% excluded_variants$Name]
+rm(excluded_variants)
 print(paste("After excluding variants:", nrow(exposure_data)))
 
 # Standardize alleles
@@ -126,10 +195,18 @@ exposure_data[is.na(rsids), rsids := paste0(
 print(paste("Total SNPs in raw exposure:", nrow(exposure_data)))
 
 # Map to rsids using all_rsids
-all_rsids[, first_char := substr(rsid, 1, 1)]
-all_rsids[, is_pos_format := first_char %in% c("1","2","3","4","5","6","7","8","9")]
+# Load this large shared lookup only after the necessary chromosome prefilter.
+# Remove unused columns by reference to avoid duplicating the expanded table.
+load(config$all_rsids_rdata)
+setDT(all_rsids)
+unused_rsid_columns <- setdiff(names(all_rsids), c("ID", "rsid", "POS19", "POS38", "REF", "ALT"))
+all_rsids[, (unused_rsid_columns) := NULL]
+rm(unused_rsid_columns)
+invisible(gc())
 
-all_rsids[is_pos_format == TRUE, 
+is_pos_format <- substr(all_rsids$rsid, 1, 1) %chin% as.character(1:9)
+
+all_rsids[is_pos_format,
           rsids := paste0(
             substr(rsid, 1, regexpr(":", rsid) - 1),
             ":",
@@ -139,7 +216,8 @@ all_rsids[is_pos_format == TRUE,
             "_",
             ALT
           )]
-all_rsids[is_pos_format == FALSE, rsids := rsid]
+all_rsids[!is_pos_format, rsids := rsid]
+rm(is_pos_format)
 
 exposure_data_mapped <- merge(exposure_data, all_rsids[,c("ID", "rsids", "POS19")], by="rsids", all.x=FALSE)
 exposure_data_mapped <- exposure_data_mapped[!duplicated(exposure_data_mapped[, .(Chrom, Pos, effectAllele, otherAllele, Beta)])]
@@ -201,6 +279,14 @@ exposure_data[, rsid := rsids]
 
 print(paste("Rsid duplicates (multi-allelic variants - keeping all):", nrow(exposure_data) - length(unique(exposure_data$rsid))))
 
+outcome_data <- vroom(
+  config$outcome_data_path,
+  col_select = c(
+    "chr.Onco", "Position.Onco", "Effect.Meta", "Baseline.Meta",
+    "Beta.meta", "sdE.meta", "p.meta"
+  ),
+  show_col_types = FALSE
+)
 outcome_data_prepared <- outcome_data %>%
   rename(
     beta_outcome = Beta.meta,
@@ -208,6 +294,8 @@ outcome_data_prepared <- outcome_data %>%
     pvalue_outcome = p.meta
 
   )
+rm(outcome_data)
+invisible(gc())
 
 outcome_data_prepared <- setDT(outcome_data_prepared)
 outcome_data_prepared <- unique(outcome_data_prepared)
@@ -228,57 +316,6 @@ setDT(merged_data)
 print(paste("After duplicate resolution:", nrow(merged_data)))
 print("Total SNPs")
 print(dim(merged_data))
-
-# Get cis-regions function
-get_cis_regions <- function(protein_names, upstream = 1e6, downstream = 1e6) {
-  ensembl = useMart("ensembl", dataset="hsapiens_gene_ensembl", host="https://grch37.ensembl.org")
-  
-  genes <- getBM(attributes = c("hgnc_symbol", "chromosome_name", "start_position", "end_position", "strand"),
-                 filters = "hgnc_symbol",
-                 values = protein_names,
-                 mart = ensembl)
-  
-  genes$cis_start <- ifelse(genes$strand == 1,
-                            genes$start_position - upstream,
-                            genes$end_position - downstream)
-  genes$cis_end <- ifelse(genes$strand == 1,
-                          genes$end_position + downstream,
-                          genes$start_position + upstream)
-  
-  genes$cis_start <- pmax(genes$cis_start, 1)
-  
-  return(genes)
-}
-
-# Extract protein information
-filename <- sub(".*/([^/]+)\\.txt\\.gz$", "\\1", data_file_to_process)
-protein_full_name <- filename
-protein_symbol <- strsplit(filename, "_")[[1]][3]  # Extract protein symbol for biomart
-protein_symbol
-
-# Get cis-regions
-cis_regions <- get_cis_regions(protein_symbol)
-
-# `apply()` coerces mixed-type data-frame rows to character. Genomic range
-# comparisons must therefore use explicitly numeric coordinates rather than
-# values extracted from an `apply()` row.
-cis_regions <- cis_regions %>%
-  mutate(
-    chromosome_name = suppressWarnings(as.numeric(chromosome_name)),
-    cis_start = suppressWarnings(as.numeric(cis_start)),
-    cis_end = suppressWarnings(as.numeric(cis_end))
-  ) %>%
-  filter(chromosome_name %in% 1:22)
-
-if (any(!is.finite(cis_regions$chromosome_name)) ||
-    any(!is.finite(cis_regions$cis_start)) ||
-    any(!is.finite(cis_regions$cis_end))) {
-  stop("Cis-region coordinates must be finite numeric values.")
-}
-
-if (nrow(cis_regions) == 0) {
-  stop(paste("No cis-region found for protein symbol:", protein_symbol))
-}
 
 print("Total PQTLs before cis filtering")
 print(dim(merged_data))
