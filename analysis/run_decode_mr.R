@@ -405,9 +405,16 @@ for (p_thresh in p_thresholds) {
     system(plink_command)
   }
   
-  chromosome_files <- list.files(path = config$chromosome_dir, pattern = "\\.bed$", full.names = TRUE)
-  if (length(chromosome_files) == 0) {
-    stop("No PLINK reference files were found in the chromosome directory.")
+  analysis_chromosomes <- sort(unique(significant_snps$chr))
+  chromosome_files <- file.path(
+    config$chromosome_dir,
+    paste0("chr", analysis_chromosomes, ".bed")
+  )
+  if (any(!file.exists(chromosome_files))) {
+    stop(
+      "Missing PLINK reference file(s): ",
+      paste(chromosome_files[!file.exists(chromosome_files)], collapse = ", ")
+    )
   }
   
   for (file in chromosome_files) {
